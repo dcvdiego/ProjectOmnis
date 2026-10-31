@@ -45,6 +45,8 @@ All of these still work, apart from the in-game auto-PR pipeline and the engine/
 
 Neither is wrong, but the README promise ("**You** play it… you can [change it]") only fully holds under option B. Decide before recruiting contributors.
 
+> **Decision (Oct 2026): option B.** The project moved to Godot 4.7, and the Lyra/Unreal content was removed from the working tree. Lyra files still exist in this repository's **git history** (the 2022 commits). Fully removing them means making the repo private or rewriting history, which is a maintainer decision. See [tooling-2026.md](tooling-2026.md) for the engine comparison.
+
 ---
 
 ## 3. Where open-source + AI problems would hit Omnis
@@ -187,6 +189,8 @@ In priority order:
 ---
 
 ## Appendix A: draft AI contribution policy (starting point)
+
+_Adopted, with additions, in [docs/contributing.md](../contributing.md#ai-assisted-contributions)._
 
 > **AI-assisted contributions**
 >

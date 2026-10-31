@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://game/weapons/weapon_data.gd" id="1_weapon"]
+
+[resource]
+script = ExtResource("1_weapon")
+display_name = "Pistol"
+damage = 34
+rounds_per_minute = 300.0
+max_range = 60.0
+magazine_size = 12
+reload_time = 1.4

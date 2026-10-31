@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# Read-only token, no secrets, no pull_request_target: untrusted PRs can't
+# reach anything sensitive. See docs/research/community-and-open-source-ai.md §3.4.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GODOT_VERSION: 4.7.2
+      # From https://github.com/godotengine/godot/releases/download/4.7.2-stable/SHA512-SUMS.txt
+      GODOT_SHA512: 9aa00f7a605200940bce3027a567b782f49bd8e940dd06ae9e987bd65aee1b1467edd56ed84fcdcbdd44354bf613bdbb4e5d2913e925850368e150c59ed54c65
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot ${{ env.GODOT_VERSION }}
+        run: |
+          zip="Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          curl -sSfL -o "$RUNNER_TEMP/$zip" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/$zip"
+          echo "$GODOT_SHA512  $RUNNER_TEMP/$zip" | sha512sum --check
+          unzip -q "$RUNNER_TEMP/$zip" -d "$RUNNER_TEMP/godot"
+          ln -s "$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64" "$RUNNER_TEMP/godot/godot"
+          echo "$RUNNER_TEMP/godot" >> "$GITHUB_PATH"
+
+      - name: Import project
+        run: godot --headless --path . --import
+
+      - name: Unit tests
+        run: godot --headless --path . -s tests/run_tests.gd
+
+      - name: Multiplayer smoke test
+        run: tests/smoke_multiplayer.sh
+        env:
+          GODOT: godot
