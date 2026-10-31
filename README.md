@@ -11,3 +11,5 @@ To contribute, please read the [contributing](docs/contributing.md) file for mor
 In the [progress](docs/progress.md) file, I will outline what the timeline of the project is, including what is in the backlog, in progress, and finished!
 
 Meanwhile, once this project takes shape I will make a Discord for the community.
+
+Research notes on running a community game in the AI era (open-source contribution policies, licensing, anti-cheat, player trust) are in [docs/research/community-and-open-source-ai.md](docs/research/community-and-open-source-ai.md).
