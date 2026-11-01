@@ -147,7 +147,7 @@ The view model shows your own arms: the same CC0 mannequin as the third-person c
   - scene loading
   - server combat rules, run offline (this process is peer 1)
   - movement, in a code-built test arena: speed caps, jump height, double jump, the air-strafe exploit guard, slide boost and decay, wall-run and wall-jump, mantle, and the low-ceiling crouch
-  - snapshot interpolation, spring stability, audio data and surfaces, and first-person hands reaching their grips
+  - snapshot interpolation, spring stability, audio data and surfaces, first-person hands reaching their grips, and every file under `game/assets/` being covered by CREDITS.md
 - Before any test, the runner compiles every `.gd` file under `game/`, `tests/` and `tools/`. `untyped_declaration` is an error in `project.godot`, so untyped code fails here even if no test loads it.
 - `tests/smoke_multiplayer.sh`: starts a real dedicated server and a client, then checks the client's player is spawned and replicated.
 - `gdlint` (godot-gdscript-toolkit, pinned) checks style; settings are in `gdlintrc`.

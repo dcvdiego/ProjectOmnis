@@ -32,6 +32,7 @@ func run() -> void:
 	_test_audio()
 	_test_springs()
 	await _test_first_person_arms()
+	_test_asset_credits()
 
 
 func create_timer(seconds: float) -> SceneTreeTimer:
@@ -376,3 +377,37 @@ func _test_springs() -> void:
 		for i in ceili(1.5 / dt):
 			state = ViewModel.spring(state.x, state.y, 260.0, 22.0, dt)
 		_check(absf(state.x) < 0.01 and absf(state.y) < 0.1, "recoil spring settles at dt=%.3f" % dt)
+
+
+## Every file under game/assets/ must be covered by a path in CREDITS.md (a
+## folder prefix ending in "/" or a glob such as `audio/weapons/*_shot_*.ogg`).
+## Same idea as Super Tux Party's check_license.py: provenance is checked by CI,
+## not by memory.
+func _test_asset_credits() -> void:
+	var credits := FileAccess.get_file_as_string("res://CREDITS.md")
+	_check(not credits.is_empty(), "CREDITS.md is readable")
+	var patterns: Array[String] = []
+	var regex := RegEx.create_from_string("`(game/assets/[^`]+)`")
+	for found in regex.search_all(credits):
+		patterns.append(found.get_string(1))
+	var uncovered: Array[String] = []
+	var count := 0
+	var dirs: Array[String] = ["res://game/assets"]
+	while not dirs.is_empty():
+		var dir := dirs.pop_back() as String
+		for sub in DirAccess.get_directories_at(dir):
+			dirs.append(dir.path_join(sub))
+		for file in DirAccess.get_files_at(dir):
+			if file.get_extension() in ["import", "uid"]:
+				continue
+			count += 1
+			var path := dir.path_join(file).trim_prefix("res://")
+			var covered := false
+			for pattern in patterns:
+				if (pattern.ends_with("/") and path.begins_with(pattern)) or path.match(pattern):
+					covered = true
+					break
+			if not covered:
+				uncovered.append(path)
+	_check(count > 0, "asset files found under game/assets")
+	_check(uncovered.is_empty(), "assets missing from CREDITS.md: %s" % ", ".join(uncovered))
