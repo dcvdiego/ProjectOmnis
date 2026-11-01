@@ -73,9 +73,10 @@ Gamepad works too: left stick moves, right stick looks, A jumps, B crouches, RT 
 godot --headless --path . --import
 godot --headless --path . -s tests/run_tests.gd   # unit + server-rule tests
 GODOT=godot tests/smoke_multiplayer.sh            # real server + client
+gdlint game tests tools                           # lint (pip install gdtoolkit==4.5.0)
 ```
 
-CI runs the same steps on every push and PR.
+CI runs the same steps on every push and PR. The test runner also compiles every script first, so a type error anywhere fails the run.
 
 ## Project layout
 
@@ -100,7 +101,7 @@ docs/                     roadmap, architecture, contributing, research
 
 ## Contributing
 
-Read **[docs/contributing.md](docs/contributing.md)** first. It covers the proposal process, the AI-assistance policy, and asset rules. The design reasoning is in [docs/architecture.md](docs/architecture.md), and the background research is in [docs/research/](docs/research/).
+Read **[docs/contributing.md](docs/contributing.md)** first. It covers the proposal process, engineering practices (code, tests, performance, multiplayer, review), the AI-assistance policy, and asset rules. New to game development? Start with [research/engineering-practices.md](docs/research/engineering-practices.md). The design reasoning is in [docs/architecture.md](docs/architecture.md), and the background research is in [docs/research/](docs/research/).
 
 A community Discord/Matrix will open once there's a playable loop worth gathering around.
 

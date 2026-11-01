@@ -17,6 +17,7 @@ The 2022 plan (BR map + 2 × 5v5 + 2 MP maps + rig) was studio-sized. The restar
 - Graphics presets (Low to Ultra), FOV and sensitivity settings, pause menu
 - **Audio:** recorded CC0 gunshots (near and far), reloads, surface-aware footsteps and impacts, movement sounds, hit and kill ticks; positional sound for other players; volume setting
 - **First-person arms:** IK hands on the weapon grips, support hand moves for reloads
+- **Engineering practices:** research note on game and Godot practices; untyped code is a compile error; every script compiled in tests; `gdlint` in CI; contributing guide rewritten
 
 ## Next: playable vertical slice
 
