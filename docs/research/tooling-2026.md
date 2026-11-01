@@ -29,12 +29,22 @@ Unreal is still possible for an open-source *game* if the public repo contains o
 
 ## Assets without being an artist
 
-1. **Human-made CC0 packs first:** Kenney, Quaternius. Mixamo for animations.
-2. **AI 3D generation for greybox and placeholders only** (see the player-facing content policy in contributing.md):
-   - TRELLIS.2 (MIT, self-hosted) has the fewest strings.
-   - Meshy and Tripo: free tiers are reportedly non-commercial, and sources disagree, so check their terms.
-   - Hunyuan3D's licence reportedly excludes the EU, UK and South Korea.
-3. Log everything in `CREDITS.md`.
+What the project uses now (Nov 2026), all CC0 and human-made:
+
+| Need | Source | Why |
+|---|---|---|
+| PBR textures, HDRI skies, props | [Poly Haven](https://polyhaven.com) | Photoscanned, CC0, and a public API with checksums (`tools/fetch_polyhaven.py`). Its ARM maps drop straight into Godot's ORM slot. |
+| More textures | [ambientCG](https://ambientcg.com) | CC0. Same workflow if Poly Haven lacks something. |
+| Characters and animation | [Quaternius](https://quaternius.com) Universal Animation Library | CC0, UE-mannequin skeleton, about 45 clips including locomotion, crouch, jump and pistol aim. The free "Standard" tier is enough. |
+| Realistic guns | [Stein Games Free Classic Weapons Pack](https://stein-indie.itch.io/classic-weapons-pack) | CC0, PBR, and the author says no generative AI. Unreal conventions (RMAO, DirectX normals) need converting; see CREDITS.md. |
+
+Lessons:
+
+1. **Check the licence file inside the download**, not just the store page, and record it in `CREDITS.md`.
+2. **Mind repo size.** 1K JPG textures are fine for props; keep 2K for big surfaces. VRAM compression and mipmaps are set by `tools/fix_texture_imports.py`, because headless imports skip Godot's "used in 3D" detection.
+3. Stylised packs (Kenney, most Quaternius props) clash with photoscanned materials. Pick one look per map.
+4. **AI 3D generation stays out of player-facing content** (see contributing.md). TRELLIS.2 (MIT, self-hosted) is fine for private blockout experiments. Meshy and Tripo free tiers are reportedly non-commercial, and Hunyuan3D's licence reportedly excludes the EU, UK and South Korea.
+5. Still missing: audio. CC0 candidates include Kenney audio packs, freesound.org CC0 uploads, and Sonniss GDC bundles (royalty-free but not CC0; check redistribution terms before committing).
 
 ## Sources
 

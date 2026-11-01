@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://game/weapons/weapon_data.gd" id="1_weapon"]
+[ext_resource type="PackedScene" path="res://game/weapons/models/m1911.tscn" id="2_model"]
 
 [resource]
 script = ExtResource("1_weapon")
@@ -10,3 +11,6 @@ rounds_per_minute = 300.0
 max_range = 60.0
 magazine_size = 12
 reload_time = 1.4
+model = ExtResource("2_model")
+view_offset = Vector3(0.13, -0.15, -0.32)
+recoil_kick = 1.6

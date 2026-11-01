@@ -1,0 +1,22 @@
+[
+	{"id": "kloofendal_48d_partly_cloudy_puresky", "kind": "hdri", "res": "2k", "use": "sky and ambient light"},
+	{"id": "concrete_floor_worn_001", "kind": "texture", "res": "2k", "use": "ground"},
+	{"id": "concrete_wall_008", "kind": "texture", "res": "1k", "use": "perimeter walls"},
+	{"id": "container_side", "kind": "texture", "res": "1k", "use": "container cover blocks"},
+	{"id": "corrugated_iron_02", "kind": "texture", "res": "1k", "use": "wall-run panels"},
+	{"id": "metal_plate", "kind": "texture", "res": "1k", "use": "platforms and ramps"},
+	{"id": "painted_concrete", "kind": "texture", "res": "1k", "use": "low cover, lane markers"},
+	{"id": "concrete_road_barrier_02", "kind": "model", "res": "1k", "use": "low cover"},
+	{"id": "barrel_03", "kind": "model", "res": "1k", "use": "dressing"},
+	{"id": "Barrel_01", "kind": "model", "res": "1k", "use": "dressing"},
+	{"id": "wooden_crate_02", "kind": "model", "res": "1k", "use": "dressing"},
+	{"id": "plastic_crate_03", "kind": "model", "res": "1k", "use": "dressing"},
+	{"id": "wooden_military_crate", "kind": "model", "res": "1k", "use": "dressing"},
+	{"id": "propane_tank", "kind": "model", "res": "1k", "use": "dressing"},
+	{"id": "portable_generator", "kind": "model", "res": "1k", "use": "dressing"},
+	{"id": "utility_box_01", "kind": "model", "res": "1k", "use": "wall dressing"},
+	{"id": "old_tyre", "kind": "model", "res": "1k", "use": "dressing"},
+	{"id": "street_lamp_02", "kind": "model", "res": "1k", "use": "lighting"},
+	{"id": "security_light", "kind": "model", "res": "1k", "use": "wall lighting"},
+	{"id": "steel_frame_shelves_01", "kind": "model", "res": "1k", "use": "dressing"}
+]

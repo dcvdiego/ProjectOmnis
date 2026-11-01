@@ -7,15 +7,29 @@ Godot 4.7, GDScript, Forward+ renderer. Everything in the repo is text except bi
 ## Scene layout
 
 ```
-Main (main.gd)                 entry scene; menu + launch flags
+Main (main.gd)                 entry scene; menu, pause menu, launch flags
 ├─ World (training_garage.tscn, world.gd)
-│  ├─ Geometry / Signs / Targets      map content (CSG greybox for now)
+│  ├─ WorldEnvironment / Sun / ReflectionProbe
+│  ├─ Geometry                        CSG blocks with world-space triplanar PBR materials
+│  ├─ Props / WallDressing            Poly Haven models (StaticProp adds box colliders)
+│  ├─ Signs / Targets
 │  ├─ SpawnPoints (Marker3D…)
 │  ├─ Players                         spawned players live here
 │  └─ PlayerSpawner (MultiplayerSpawner → Players)
 ├─ MenuCamera
-└─ Menu (CanvasLayer)
+├─ Menu (CanvasLayer)
+└─ Pause (CanvasLayer)
 Network (autoload)             ENet peer: host / join / dedicated server
+Settings (autoload)            graphics preset, FOV, sensitivity → viewport + environment
+
+Player (player.gd, CharacterBody3D)
+├─ CollisionShape3D            capsule; height changes when crouching / sliding
+├─ Character (character_model.gd)   animated third-person body + held weapon
+├─ Head                        eye point (replicated pitch / height), used by the server
+├─ Camera3D (top-level)        owner only; placed every rendered frame
+│  └─ ViewModel                first-person weapons
+├─ Synchronizer                replicates net_position / yaw / pitch / velocity / state / height
+└─ HUD
 ```
 
 Maps are scenes whose root uses `world.gd` (`World`). A new map needs `SpawnPoints`, `Players` and a `PlayerSpawner` pointing at `Players`.
@@ -54,12 +68,50 @@ sequenceDiagram
 
 ### Known gaps (tracked in [progress.md](progress.md))
 
-- **Client-authoritative movement.** A modified client can teleport or speed-hack. The fix is to validate movement on the server, and eventually add server-authoritative movement with client prediction and lag compensation. The [netfox](https://github.com/foxssake/netfox) add-on (MIT) is the leading candidate.
+- **Client-authoritative movement.** A modified client can teleport or speed-hack, and richer movement makes speed checks harder. `PlayerMotor` is deterministic per input, so the fix is to replay inputs on the server (validation first, then prediction and rollback). The [netfox](https://github.com/foxssake/netfox) add-on (MIT) is the leading candidate. The server's shot-origin check already allows extra slack in proportion to speed.
 - **No lag compensation.** The server raycasts against its latest state, so high-ping players must lead targets.
 - **No visibility culling.** Every client receives every player's position, which enables wallhacks.
 - Late joiners don't receive other players' current health or weapon.
+- Third-person strafing turns the body up to 55° towards the movement direction and plays backpedalling in reverse. Proper 8-way blend spaces need directional clips.
 
 As an open-source shooter, we can't rely on hiding client code. Cheat resistance has to come from the server: validation, culling and server-side behavioural detection. See research §3.7.
+
+## Movement
+
+`PlayerMotor` (`game/player/player_motor.gd`) is a plain class that moves the `CharacterBody3D` one physics tick at a time from a `MoveInput` snapshot. The player feeds it live input; tests feed it scripted input. It is the piece that would be replayed on the server for prediction and rollback later.
+
+| State | What happens |
+|---|---|
+| `GROUND` | Source-style acceleration and friction, with walk, sprint (forward only) and crouch speeds. Jump buffer and coyote time. Friction is skipped for a few frames after landing, so a buffered jump keeps speed (bunny hop). |
+| `AIR` | Heavier-than-real gravity. Air acceleration only caps speed *along* the wish direction, so strafing while turning bends momentum (air strafing). Also handles the double jump (can change direction), wall-jump when near a wall, mantle checks, and wall-run entry. |
+| `SLIDE` | Starts by crouching above `slide_min_speed`, with a boost that has a cooldown. Linear deceleration; slopes add or remove speed. Jumping out keeps momentum (slide-hop). |
+| `WALLRUN` | Starts when airborne, fast enough and beside a near-vertical wall. Gravity is reduced, then ramps back up; there's a time limit. Jumping kicks off the wall and refreshes the double jump. The same wall can't be re-attached until you touch the ground or another wall. |
+| `MANTLE` | Waist-high obstacle in front, a walkable top within `mantle_max_height`, and room to stand: the player is moved up and over the edge. |
+
+All numbers live in a `MovementSettings` resource (`game/player/movement/default.tres`). Movement changes can be proposed and playtested the same way as weapon balance.
+
+## Smoothness
+
+Fast movement exposes every hitch, so:
+
+- **Physics interpolation is on.** Physics ticks at 60 Hz; bodies are drawn between ticks at any refresh rate.
+- **The camera is top-level and opts out of interpolation.** Every rendered frame it is placed at the body's interpolated position, using the newest mouse look. Aim never waits for a physics tick.
+- **Rule:** anything moved per rendered frame (`_process`) must set `physics_interpolation_mode = OFF` and read `get_global_transform_interpolated()` from what it follows. Examples are the camera, the third-person held weapon and the effects. Anything moved per tick stays interpolated. After teleports, call `reset_physics_interpolation()`.
+- **Remote players** are drawn `INTERP_DELAY` (100 ms) in the past, interpolating between received snapshots. They extrapolate for at most 150 ms if packets are late. The server uses the newest state for hit detection instead.
+- **No-clip view model.** First-person weapons are drawn at 0.3× scale and 0.3× distance. That looks identical, but the gun stays inside the player capsule, so it never pokes through walls and no second camera is needed.
+- V-Sync is off by default, and TAA isn't used (it smears during fast motion).
+
+## Rendering and assets
+
+- Forward+ renderer. `Settings` applies a preset:
+  - **Low:** FSR 1 at 77% scale, FXAA, hard shadows.
+  - **Medium** (default): SMAA, SSAO.
+  - **High:** adds MSAA 2×, SSIL and volumetric fog.
+  - **Ultra:** adds MSAA 4×, SSR, SDFGI and 8K sun shadows.
+- Map surfaces are CSG boxes with **world-space triplanar** ORM materials (Poly Haven ARM maps are already in Godot's ORM channel order). Any box size tiles correctly without UV work.
+- The sun direction matches the sun in the HDRI sky. One box-projected reflection probe covers the map; it skips view models (layer 20) and characters (layer 2).
+- Characters use Quaternius' CC0 animation library. An `AnimationTree` crossfades locomotion clips and blends an upper-body aim pose (filtered to spine and arms) driven by the replicated pitch.
+- Asset sources and licences are in [CREDITS.md](../CREDITS.md). `tools/` holds the Poly Haven fetcher and the texture-import fixer.
 
 ## Data-driven balance
 
@@ -67,6 +119,11 @@ As an open-source shooter, we can't rely on hiding client code. Cheat resistance
 
 ## Testing
 
-- `tests/run_tests.gd`: headless, dependency-free. Covers data checks, argument parsing, scene loading, and server combat rules run offline (this process is peer 1).
+- `tests/run_tests.gd` loads `tests/suite.gd` at runtime, so the suite can use autoloads. It is headless and dependency-free, and covers:
+  - data checks and argument parsing
+  - scene loading
+  - server combat rules, run offline (this process is peer 1)
+  - movement, in a code-built test arena: speed caps, jump height, double jump, the air-strafe exploit guard, slide boost and decay, wall-run and wall-jump, mantle, and the low-ceiling crouch
+  - snapshot interpolation
 - `tests/smoke_multiplayer.sh`: starts a real dedicated server and a client, then checks the client's player is spawned and replicated.
 - CI (`.github/workflows/ci.yml`): pinned Godot version with checksum verification, read-only token, no secrets.

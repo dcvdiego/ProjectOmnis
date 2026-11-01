@@ -8,6 +8,7 @@ extends Node
 @onready var world: World = $World
 @onready var menu: CanvasLayer = $Menu
 @onready var menu_camera: Camera3D = $MenuCamera
+@onready var pause: CanvasLayer = $Pause
 @onready var address_input: LineEdit = %Address
 @onready var status_label: Label = %Status
 
@@ -17,6 +18,8 @@ func _ready() -> void:
 	%HostButton.pressed.connect(_on_host_pressed)
 	%JoinButton.pressed.connect(_on_join_pressed)
 	%QuitButton.pressed.connect(get_tree().quit)
+	%ResumeButton.pressed.connect(_resume)
+	%LeaveButton.pressed.connect(_leave)
 	multiplayer.connected_to_server.connect(_on_connected)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
@@ -30,6 +33,34 @@ func _ready() -> void:
 		"join":
 			address_input.text = launch.address
 			Network.join(launch.address, launch.port)
+
+
+func _process(_delta: float) -> void:
+	if menu.visible:
+		# Slow drift over the map behind the main menu.
+		menu_camera.rotation.y = sin(Time.get_ticks_msec() / 9000.0) * 0.25
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if menu.visible or not event.is_action_pressed("toggle_mouse"):
+		return
+	if pause.visible:
+		_resume()
+	else:
+		pause.show()
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_viewport().set_input_as_handled()
+
+
+func _resume() -> void:
+	pause.hide()
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _leave() -> void:
+	Network.leave()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().reload_current_scene()
 
 
 func _on_host_pressed() -> void:

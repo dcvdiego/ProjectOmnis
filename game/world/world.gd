@@ -45,3 +45,11 @@ func get_spawn_position(seed_value: int) -> Vector3:
 	if points.is_empty():
 		return Vector3.UP
 	return (points[absi(seed_value) % points.size()] as Node3D).global_position
+
+
+## Facing (yaw, radians) of the spawn point picked by `get_spawn_position`.
+func get_spawn_yaw(seed_value: int) -> float:
+	var points := spawn_points.get_children()
+	if points.is_empty():
+		return 0.0
+	return (points[absi(seed_value) % points.size()] as Node3D).global_rotation.y

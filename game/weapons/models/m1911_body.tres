@@ -1,0 +1,11 @@
+[gd_resource type="ORMMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://game/assets/weapons/m1911/m1911_albedo.jpg" id="1_albedo"]
+[ext_resource type="Texture2D" path="res://game/assets/weapons/m1911/m1911_orm.jpg" id="2_orm"]
+[ext_resource type="Texture2D" path="res://game/assets/weapons/m1911/m1911_normal_gl.jpg" id="3_normal"]
+
+[resource]
+albedo_texture = ExtResource("1_albedo")
+orm_texture = ExtResource("2_orm")
+normal_enabled = true
+normal_texture = ExtResource("3_normal")
