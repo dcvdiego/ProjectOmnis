@@ -9,6 +9,7 @@ var health := MAX_HEALTH
 var _hits_since_reset := 0
 
 @onready var label: Label3D = $Label3D
+@onready var character: CharacterModel = $Character
 
 
 func _ready() -> void:
@@ -35,6 +36,7 @@ func _show_hit(amount: int, new_health: int, hits: int) -> void:
 	health = new_health
 	_hits_since_reset = hits
 	_refresh_label(amount)
+	character.set_dead(new_health == 0)
 
 
 func _refresh_label(last_damage: int) -> void:

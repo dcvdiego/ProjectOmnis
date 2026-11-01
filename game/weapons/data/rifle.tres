@@ -1,6 +1,14 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://game/weapons/weapon_data.gd" id="1_weapon"]
+[ext_resource type="AudioStream" path="res://game/assets/audio/weapons/ak47_shot_1.ogg" id="3_shot1"]
+[ext_resource type="AudioStream" path="res://game/assets/audio/weapons/ak47_shot_2.ogg" id="4_shot2"]
+[ext_resource type="AudioStream" path="res://game/assets/audio/weapons/ak47_shot_3.ogg" id="5_shot3"]
+[ext_resource type="AudioStream" path="res://game/assets/audio/weapons/ak47_shot_4.ogg" id="6_shot4"]
+[ext_resource type="AudioStream" path="res://game/assets/audio/weapons/ak47_shot_far_1.ogg" id="7_far1"]
+[ext_resource type="AudioStream" path="res://game/assets/audio/weapons/ak47_shot_far_2.ogg" id="8_far2"]
+[ext_resource type="AudioStream" path="res://game/assets/audio/weapons/rifle_reload.ogg" id="9_reload"]
+[ext_resource type="PackedScene" path="res://game/weapons/models/ak47.tscn" id="2_model"]
 
 [resource]
 script = ExtResource("1_weapon")
@@ -10,3 +18,9 @@ rounds_per_minute = 600.0
 max_range = 150.0
 magazine_size = 30
 reload_time = 2.2
+model = ExtResource("2_model")
+view_offset = Vector3(0.13, -0.18, -0.28)
+recoil_kick = 0.7
+fire_sounds = Array[AudioStream]([ExtResource("3_shot1"), ExtResource("4_shot2"), ExtResource("5_shot3"), ExtResource("6_shot4")])
+fire_sounds_far = Array[AudioStream]([ExtResource("7_far1"), ExtResource("8_far2")])
+reload_sound = ExtResource("9_reload")

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/characters/character_model.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://game/assets/characters/quaternius/UAL1_Standard.glb" id="2_body"]
+
+[node name="Character" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Body" parent="." instance=ExtResource("2_body")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)

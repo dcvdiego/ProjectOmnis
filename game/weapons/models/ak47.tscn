@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/weapons/weapon_model.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://game/assets/weapons/ak47/ak47.fbx" id="2_mesh"]
+[ext_resource type="Material" path="res://game/weapons/models/ak47_body.tres" id="3_body"]
+[ext_resource type="Material" path="res://game/weapons/models/brass.tres" id="4_brass"]
+[ext_resource type="Material" path="res://game/weapons/models/sight_glow.tres" id="5_glow"]
+
+[node name="AK47" type="Node3D"]
+script = ExtResource("1_script")
+body_material = ExtResource("3_body")
+ammo_material = ExtResource("4_brass")
+sight_material = ExtResource("5_glow")
+
+[node name="Mesh" parent="." instance=ExtResource("2_mesh")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="Muzzle" type="Marker3D" parent="."]
+position = Vector3(0, 0.0957, -0.7006)
+
+[node name="GripR" type="Marker3D" parent="."]
+transform = Transform3D(0.1871, 0.9723, 0.1402, -0.9356, 0.1329, 0.3271, 0.2994, -0.1924, 0.9345, 0.035, -0.04, 0.075)
+
+[node name="GripL" type="Marker3D" parent="."]
+transform = Transform3D(-0.8915, -0.1363, -0.4319, 0.2675, -0.9281, -0.2592, -0.3655, -0.3466, 0.8639, -0.045, 0.0, -0.27)
+
+[node name="MagWell" type="Marker3D" parent="."]
+position = Vector3(0, -0.07, -0.19)

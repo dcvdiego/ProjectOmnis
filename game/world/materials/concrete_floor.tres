@@ -1,0 +1,16 @@
+[gd_resource type="ORMMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://game/assets/polyhaven/textures/concrete_floor_worn_001/concrete_floor_worn_001_diff_2k.jpg" id="1_albedo"]
+[ext_resource type="Texture2D" path="res://game/assets/polyhaven/textures/concrete_floor_worn_001/concrete_floor_worn_001_arm_2k.jpg" id="2_orm"]
+[ext_resource type="Texture2D" path="res://game/assets/polyhaven/textures/concrete_floor_worn_001/concrete_floor_worn_001_nor_gl_2k.jpg" id="3_normal"]
+
+[resource]
+albedo_color = Color(0.78, 0.78, 0.78, 1)
+albedo_texture = ExtResource("1_albedo")
+orm_texture = ExtResource("2_orm")
+normal_enabled = true
+normal_texture = ExtResource("3_normal")
+uv1_scale = Vector3(0.22, 0.22, 0.22)
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_triplanar_sharpness = 4.0
