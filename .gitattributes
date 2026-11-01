@@ -1,0 +1,10 @@
+# Normalize EOL for all files that Git considers text files.
+* text=auto eol=lf
+
+# Binary assets. When the project starts taking real art/audio, move these
+# to Git LFS (see docs/contributing.md#assets).
+*.png binary
+*.jpg binary
+*.glb binary
+*.ogg binary
+*.wav binary

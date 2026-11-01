@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/world/target_dummy.gd" id="1_dummy"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_dummy"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dummy"]
+albedo_color = Color(0.95, 0.55, 0.2, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_dummy"]
+material = SubResource("StandardMaterial3D_dummy")
+radius = 0.4
+height = 1.8
+
+[node name="TargetDummy" type="StaticBody3D"]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1_dummy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_dummy")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_dummy")
+
+[node name="Label3D" type="Label3D" parent="."]
+position = Vector3(0, 2.3, 0)
+billboard = 1
+font_size = 48
+outline_size = 8
+text = "HP 100 / 100"

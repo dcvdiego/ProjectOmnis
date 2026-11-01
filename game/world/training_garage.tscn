@@ -1,0 +1,184 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/world/world.gd" id="1_world"]
+[ext_resource type="PackedScene" path="res://game/world/target_dummy.tscn" id="2_dummy"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.35, 0.5, 0.7, 1)
+sky_horizon_color = Color(0.7, 0.75, 0.8, 1)
+ground_horizon_color = Color(0.7, 0.75, 0.8, 1)
+
+[sub_resource type="Sky" id="Sky_main"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 2
+sky = SubResource("Sky_main")
+tonemap_mode = 2
+ambient_light_energy = 0.6
+ssao_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.16, 0.17, 0.19, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.38, 0.4, 0.43, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cover"]
+albedo_color = Color(0.2, 0.32, 0.5, 1)
+
+[node name="TrainingGarage" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.9, 0.6, 0)
+shadow_enabled = true
+
+[node name="Geometry" type="Node3D" parent="."]
+
+[node name="Floor" type="CSGBox3D" parent="Geometry"]
+position = Vector3(0, -0.5, 0)
+use_collision = true
+size = Vector3(60, 1, 80)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="WallNorth" type="CSGBox3D" parent="Geometry"]
+position = Vector3(0, 3, -40)
+use_collision = true
+size = Vector3(60, 6, 1)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="WallSouth" type="CSGBox3D" parent="Geometry"]
+position = Vector3(0, 3, 40)
+use_collision = true
+size = Vector3(60, 6, 1)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="WallEast" type="CSGBox3D" parent="Geometry"]
+position = Vector3(30, 3, 0)
+use_collision = true
+size = Vector3(1, 6, 80)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="WallWest" type="CSGBox3D" parent="Geometry"]
+position = Vector3(-30, 3, 0)
+use_collision = true
+size = Vector3(1, 6, 80)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="Cover1" type="CSGBox3D" parent="Geometry"]
+position = Vector3(-8, 0.75, 20)
+use_collision = true
+size = Vector3(2, 1.5, 1)
+material = SubResource("StandardMaterial3D_cover")
+
+[node name="Cover2" type="CSGBox3D" parent="Geometry"]
+position = Vector3(8, 0.75, 20)
+use_collision = true
+size = Vector3(2, 1.5, 1)
+material = SubResource("StandardMaterial3D_cover")
+
+[node name="Cover3" type="CSGBox3D" parent="Geometry"]
+position = Vector3(-4, 0.75, 6)
+use_collision = true
+size = Vector3(2, 1.5, 1)
+material = SubResource("StandardMaterial3D_cover")
+
+[node name="Cover4" type="CSGBox3D" parent="Geometry"]
+position = Vector3(4, 0.75, 6)
+use_collision = true
+size = Vector3(2, 1.5, 1)
+material = SubResource("StandardMaterial3D_cover")
+
+[node name="Cover5" type="CSGBox3D" parent="Geometry"]
+position = Vector3(0, 1.5, -8)
+use_collision = true
+size = Vector3(2, 3, 1)
+material = SubResource("StandardMaterial3D_cover")
+
+[node name="Cover6" type="CSGBox3D" parent="Geometry"]
+position = Vector3(-10, 0.75, -18)
+use_collision = true
+size = Vector3(2, 1.5, 1)
+material = SubResource("StandardMaterial3D_cover")
+
+[node name="Cover7" type="CSGBox3D" parent="Geometry"]
+position = Vector3(10, 0.75, -18)
+use_collision = true
+size = Vector3(2, 1.5, 1)
+material = SubResource("StandardMaterial3D_cover")
+
+[node name="Platform" type="CSGBox3D" parent="Geometry"]
+position = Vector3(-22, 1.5, -5.8)
+use_collision = true
+size = Vector3(10, 3, 10)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="Ramp" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 0.955336, 0.29552, 0, -0.29552, 0.955336, -22, 1.33, 4)
+use_collision = true
+size = Vector3(4, 0.4, 10)
+material = SubResource("StandardMaterial3D_cover")
+
+[node name="Signs" type="Node3D" parent="."]
+
+[node name="SignRange15" type="Label3D" parent="Signs"]
+position = Vector3(0, 0.05, 15)
+rotation = Vector3(-1.5708, 0, 0)
+font_size = 96
+text = "15 m"
+
+[node name="SignRange30" type="Label3D" parent="Signs"]
+position = Vector3(0, 0.05, 0)
+rotation = Vector3(-1.5708, 0, 0)
+font_size = 96
+text = "30 m"
+
+[node name="SignRange50" type="Label3D" parent="Signs"]
+position = Vector3(0, 0.05, -20)
+rotation = Vector3(-1.5708, 0, 0)
+font_size = 96
+text = "50 m"
+
+[node name="Targets" type="Node3D" parent="."]
+
+[node name="Dummy1" parent="Targets" instance=ExtResource("2_dummy")]
+position = Vector3(-5, 0, 15)
+
+[node name="Dummy2" parent="Targets" instance=ExtResource("2_dummy")]
+position = Vector3(5, 0, 15)
+
+[node name="Dummy3" parent="Targets" instance=ExtResource("2_dummy")]
+position = Vector3(-3, 0, 0)
+
+[node name="Dummy4" parent="Targets" instance=ExtResource("2_dummy")]
+position = Vector3(3, 0, 0)
+
+[node name="Dummy5" parent="Targets" instance=ExtResource("2_dummy")]
+position = Vector3(0, 0, -20)
+
+[node name="Dummy6" parent="Targets" instance=ExtResource("2_dummy")]
+position = Vector3(-22, 3, -7)
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="Spawn1" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-6, 0.1, 32)
+
+[node name="Spawn2" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-2, 0.1, 32)
+
+[node name="Spawn3" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(2, 0.1, 32)
+
+[node name="Spawn4" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(6, 0.1, 32)
+
+[node name="Players" type="Node3D" parent="."]
+
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("res://game/player/player.tscn")
+spawn_path = NodePath("../Players")

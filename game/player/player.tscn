@@ -1,0 +1,113 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/player/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://game/weapons/weapon_data.gd" id="2_weapon_data"]
+[ext_resource type="Resource" path="res://game/weapons/data/rifle.tres" id="3_rifle"]
+[ext_resource type="Resource" path="res://game/weapons/data/pistol.tres" id="4_pistol"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.37, 0.83, 0.64, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+material = SubResource("StandardMaterial3D_body")
+radius = 0.4
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_visor"]
+albedo_color = Color(0.1, 0.12, 0.16, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_visor"]
+material = SubResource("StandardMaterial3D_visor")
+size = Vector3(0.5, 0.15, 0.2)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_player"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("Head:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
+[node name="Player" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 7
+script = ExtResource("1_player")
+weapons = Array[ExtResource("2_weapon_data")]([ExtResource("3_rifle"), ExtResource("4_pistol")])
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="BodyMesh" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_body")
+
+[node name="Visor" type="MeshInstance3D" parent="BodyMesh"]
+position = Vector3(0, 0.6, -0.33)
+mesh = SubResource("BoxMesh_visor")
+
+[node name="Head" type="Node3D" parent="."]
+position = Vector3(0, 1.6, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Head"]
+fov = 80.0
+
+[node name="Synchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_player")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Crosshair" type="Label" parent="HUD"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HitMarker" type="Label" parent="HUD"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 32
+text = "×"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Status" type="Label" parent="HUD"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -56.0
+offset_right = 624.0
+offset_bottom = -20.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 22
+text = "HP 100"
