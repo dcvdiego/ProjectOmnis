@@ -1,0 +1,8 @@
+# gdlint (godot-gdscript-toolkit) settings. Anything not listed uses the
+# defaults, which follow the official GDScript style guide.
+# The style guide asks for lines under 100 characters; 120 is the hard limit CI enforces.
+max-line-length: 120
+excluded_directories: !!set
+  .git: null
+  .godot: null
+  addons: null

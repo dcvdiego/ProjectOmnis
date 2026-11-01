@@ -25,11 +25,11 @@ const CLIP_SPEED := {
 ## Render layer for characters (keeps bullet-hole decals off them).
 const CHARACTER_LAYER := 1 << 1
 
-static var _suit_materials := {}
-static var _suit_meshes := {}
-
 ## Where the grip sits relative to the right hand, in the aim frame.
 const GRIP_OFFSET := Vector3(0.0, -0.03, -0.07)
+
+static var _suit_materials := {}
+static var _suit_meshes := {}
 
 @export var suit_color := Color(0.13, 0.14, 0.16)
 @export var accent_color := Color(0.2, 0.85, 1.0)
@@ -193,7 +193,8 @@ func _place_weapon() -> void:
 		return
 	# Hand position relative to this node, re-applied to the *interpolated*
 	# transform so the gun moves exactly with the smoothly drawn body.
-	var hand := global_transform.affine_inverse() * (_skeleton.global_transform * _skeleton.get_bone_global_pose(_hand_bone))
+	var hand_pose := _skeleton.global_transform * _skeleton.get_bone_global_pose(_hand_bone)
+	var hand := global_transform.affine_inverse() * hand_pose
 	var drawn := get_global_transform_interpolated()
 	# Aiming: follow the look pitch. Sprinting / wall-running: carry it angled down.
 	var pitch := lerpf(deg_to_rad(-35.0), _aim_pitch, _aim_weight)
@@ -295,11 +296,12 @@ func _setup_animation() -> void:
 
 	var aim := AnimationNodeBlend3.new()
 	tree_root.add_node("aim", aim)
-	for pair in [[0, "Pistol_Aim_Down"], [1, "Pistol_Aim_Neutral"], [2, "Pistol_Aim_Up"]]:
+	var aim_poses: Array[StringName] = [&"Pistol_Aim_Down", &"Pistol_Aim_Neutral", &"Pistol_Aim_Up"]
+	for i in aim_poses.size():
 		var pose := AnimationNodeAnimation.new()
-		pose.animation = StringName(pair[1])
-		tree_root.add_node(pair[1], pose)
-		tree_root.connect_node("aim", pair[0], pair[1])
+		pose.animation = aim_poses[i]
+		tree_root.add_node(aim_poses[i], pose)
+		tree_root.connect_node("aim", i, aim_poses[i])
 
 	var upper := AnimationNodeBlend2.new()
 	upper.filter_enabled = true

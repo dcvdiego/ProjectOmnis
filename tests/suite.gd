@@ -4,6 +4,8 @@ extends RefCounted
 
 const NetworkScript := preload("res://game/autoload/network.gd")
 const WEAPON_DIR := "res://game/weapons/data/"
+const PLAYER_SCENE := "res://game/player/player.tscn"
+const DUMMY_SCENE := "res://game/world/target_dummy.tscn"
 
 var root: Window
 var tree: SceneTree
@@ -87,7 +89,7 @@ func _test_launch_args() -> void:
 
 
 func _test_scenes_instantiate() -> void:
-	for path in ["res://game/main/main.tscn", "res://game/world/training_garage.tscn",
+	for path: String in ["res://game/main/main.tscn", "res://game/world/training_garage.tscn",
 			"res://game/player/player.tscn", "res://game/world/target_dummy.tscn"]:
 		var scene := load(path) as PackedScene
 		_check(scene != null, "%s loads" % path)
@@ -100,7 +102,7 @@ func _test_scenes_instantiate() -> void:
 		node.queue_free()
 		await process_frame
 
-	var player := (load("res://game/player/player.tscn") as PackedScene).instantiate() as Player
+	var player := (load(PLAYER_SCENE) as PackedScene).instantiate() as Player
 	_check(player != null, "player.tscn instantiates as Player")
 	if player:
 		_check(player.weapons.size() == 2, "player has rifle and pistol")
@@ -117,10 +119,10 @@ func _test_server_combat_rules() -> void:
 	if world == null:
 		return
 	root.add_child(world)
-	var dummy := (load("res://game/world/target_dummy.tscn") as PackedScene).instantiate() as TargetDummy
+	var dummy := (load(DUMMY_SCENE) as PackedScene).instantiate() as TargetDummy
 	dummy.position = Vector3(20, 0, 20)  # open lane, no cover in between
 	world.add_child(dummy)
-	var player := (load("res://game/player/player.tscn") as PackedScene).instantiate() as Player
+	var player := (load(PLAYER_SCENE) as PackedScene).instantiate() as Player
 	player.name = "1"
 	world.players.add_child(player)
 	player.global_position = Vector3(20, 0, 30)
@@ -193,7 +195,7 @@ func _add_box(parent: Node3D, center: Vector3, size: Vector3) -> void:
 
 
 func _spawn_mover(arena: Node3D, at: Vector3) -> Player:
-	var player := (load("res://game/player/player.tscn") as PackedScene).instantiate() as Player
+	var player := (load(PLAYER_SCENE) as PackedScene).instantiate() as Player
 	player.name = "1"
 	arena.add_child(player)
 	player.set_physics_process(false)  # the test drives the motor directly
@@ -303,7 +305,7 @@ func _test_movement() -> void:
 
 ## Remote players are drawn between received snapshots.
 func _test_snapshot_interpolation() -> void:
-	var p := (load("res://game/player/player.tscn") as PackedScene).instantiate() as Player
+	var p := (load(PLAYER_SCENE) as PackedScene).instantiate() as Player
 	p._snapshots = [[1.0, Vector3(0, 0, 0), 0.0, 0.0], [1.1, Vector3(1, 0, 0), 0.2, 0.0]]
 	var mid: Array = p._sample_snapshots(1.05)
 	_check((mid[0] as Vector3).is_equal_approx(Vector3(0.5, 0, 0)), "snapshot position interpolates")
@@ -318,7 +320,8 @@ func _test_snapshot_interpolation() -> void:
 
 func _test_audio() -> void:
 	_check(AudioServer.get_bus_index(Sfx.WORLD_BUS) >= 0, "World audio bus exists")
-	for file: String in Array(DirAccess.get_files_at(WEAPON_DIR)).filter(func(f: String) -> bool: return f.ends_with(".tres")):
+	var is_resource := func(f: String) -> bool: return f.ends_with(".tres")
+	for file: String in Array(DirAccess.get_files_at(WEAPON_DIR)).filter(is_resource):
 		var weapon := load(WEAPON_DIR + file) as WeaponData
 		_check(not weapon.fire_sounds.is_empty() and not weapon.fire_sounds.has(null), "%s has fire sounds" % file)
 		_check(not weapon.fire_sounds_far.is_empty(), "%s has distant fire sounds" % file)
@@ -329,7 +332,7 @@ func _test_audio() -> void:
 	var floor := CSGBox3D.new()
 	floor.material = load("res://game/world/materials/concrete_floor.tres")
 	_check(Sfx.surface_of(floor) == Sfx.Surface.CONCRETE, "concrete geometry sounds like concrete")
-	var dummy := (load("res://game/world/target_dummy.tscn") as PackedScene).instantiate()
+	var dummy := (load(DUMMY_SCENE) as PackedScene).instantiate()
 	_check(Sfx.surface_of(dummy) == Sfx.Surface.FLESH, "damageable targets sound like flesh")
 	for node: Node in [metal, floor, dummy]:
 		node.free()
