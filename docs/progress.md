@@ -17,7 +17,7 @@ The 2022 plan (BR map + 2 × 5v5 + 2 MP maps + rig) was studio-sized. The restar
 - Graphics presets (Low to Ultra), FOV and sensitivity settings, pause menu
 - **Audio:** recorded CC0 gunshots (near and far), reloads, surface-aware footsteps and impacts, movement sounds, hit and kill ticks; positional sound for other players; volume setting
 - **First-person arms:** IK hands on the weapon grips, support hand moves for reloads
-- **Engineering practices:** research note on game and Godot practices; untyped code is a compile error; every script compiled in tests; `gdlint` in CI; contributing guide rewritten
+- **Engineering practices:** research note on game and Godot practices, including a survey of 15 open-source Godot game repos; untyped code is a compile error; every script compiled in tests; `gdlint` in CI; asset-credits test; contributing guide rewritten
 
 ## Next: playable vertical slice
 
@@ -29,6 +29,8 @@ The 2022 plan (BR map + 2 × 5v5 + 2 MP maps + rig) was studio-sized. The restar
 - [ ] Hand-authored reload animations (magazine out/in) on top of the IK arms
 - [ ] Occlusion / low-pass for sounds behind walls
 - [ ] 8-way locomotion blending and a proper slide / wall-run pose for third-person characters
+- [ ] Export presets and CI builds (client + dedicated server), with the git commit stamped into each build
+- [ ] In-game bug reporter (log + screenshot) and debug console for playtests
 - [ ] Key rebinding
 - [ ] Test the graphics presets on low-end GPUs and the Steam Deck; set frame-time budgets
 - [ ] Export presets and release builds (Windows, Linux, macOS), plus a dedicated-server build

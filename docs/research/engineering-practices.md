@@ -15,15 +15,22 @@ _Research date: 1 November 2026. Written for contributors who know web or backen
    - One change per PR.
    - Reviewers check that the problem exists and that the approach is right before they read the code.
    - Optimisations need profiler evidence.
-4. **Studios that ship live games automate heavily and still playtest.**
+4. **Real Godot game repos** (15 surveyed in [§8](#8-how-godot-game-repositories-are-structured)) agree on the basics:
+   - `project.godot` at the root, `.import` and `.uid` files committed, third-party code in `addons/`.
+   - Folders grouped by feature or system rather than by file type.
+   - Balance and content kept as data files.
+
+   Most have **no automated tests**: only 2 of 15 do. Only 3 lint in CI, and 5 build exports in CI. Our tests and lint are already ahead of the norm; export builds are the gap.
+5. **Studios that ship live games automate heavily and still playtest.**
    - Rare tested *Sea of Thieves* on every check-in from day one.
    - Riot runs about 100,000 functional test cases a day on *League of Legends*.
    - Valve treats designs as hypotheses and playtests as experiments.
-5. **Adopted in this repo now:**
+6. **Adopted in this repo now:**
    - Untyped GDScript declarations are compile errors, and the test runner compiles every script.
    - `gdlint`, pinned, runs in CI.
    - Optional pre-commit hooks.
-   - A rewritten contributing guide (see [§8](#8-what-we-adopted-deferred-and-rejected)).
+   - A test that fails if any file under `game/assets/` isn't covered by CREDITS.md.
+   - A rewritten contributing guide, including where files go (see [§9](#9-what-we-adopted-deferred-and-rejected)).
 
 ## 1. What is actually different about games
 
@@ -57,7 +64,7 @@ The classic references are [Valve's latency compensation paper](https://develope
 |---|---|---|
 | ESLint | **`gdlint`** ([godot-gdscript-toolkit](https://github.com/Scony/godot-gdscript-toolkit), v4.5.0 pinned) | Naming, definition order, line length, duplicate loads. Config in `gdlintrc`. |
 | `tsc --noEmit`, `strict` | **Static typing**, plus `untyped_declaration` set to *error* in `project.godot`. `tests/run_tests.gd` compiles every script first. | Typed GDScript catches more errors before running, and it is faster too: it "improves performance by using optimized opcodes" ([Godot: static typing](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/static_typing.html)). |
-| Prettier | `gdformat`, same toolkit; **not enforced** (see §8) | Follow the [official style guide](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html). |
+| Prettier | `gdformat`, same toolkit; **not enforced** (see §9) | Follow the [official style guide](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html). |
 | Jest / Vitest | `tests/suite.gd` (headless, dependency-free). [GUT](https://github.com/bitwes/Gut) or [gdUnit4](https://github.com/MikeSchulze/gdUnit4) when it grows. | Movement is tested in a code-built arena with scripted input. |
 | Playwright / E2E | `tests/smoke_multiplayer.sh` (real server and client); bots later | Riot drives the real game over RPC from Python (§4). |
 | Lockfile | Godot version **and checksum** pinned in CI; add-ons vendored in the repo | An engine upgrade is a deliberate PR, like a major dependency bump. |
@@ -133,7 +140,7 @@ Other open-source games are similar:
 - [Luanti](https://github.com/luanti-org/luanti/blob/master/doc/developing/ai_policy.md) bans "vibe-coding", autonomous AI use and AI-generated media, but allows AI for search, local review and boilerplate. It also closes non-roadmap PRs that don't get "concept approval" within a month ([CONTRIBUTING](https://github.com/luanti-org/luanti/blob/master/.github/CONTRIBUTING.md)).
 - [Veloren](https://gitlab.com/veloren/veloren/-/blob/master/CONTRIBUTING.md) presumes all LLM output is "tainted content" that must not be committed.
 
-Our policy allows AI-written code if the human understands, tests, discloses and signs off on it, and agents may act only when opted in. That is a deliberate difference, and this repo's own history leans heavily on an AI agent. **This is a decision for the maintainers, not something this research changes** (see §8).
+Our policy allows AI-written code if the human understands, tests, discloses and signs off on it, and agents may act only when opted in. That is a deliberate difference, and this repo's own history leans heavily on an AI agent. **This is a decision for the maintainers, not something this research changes** (see §9).
 
 ## 4. How studios test games
 
@@ -210,7 +217,95 @@ For a community game:
 - It ships to an experimental playlist, and the decision uses both match stats and observed play.
 - Votes are one input among several ([community research §3.3](community-and-open-source-ai.md)).
 
-## 8. What we adopted, deferred and rejected
+## 8. How Godot game repositories are structured
+
+Godot imposes almost no project structure ([Godot: project organization](https://docs.godotengine.org/en/stable/tutorials/best_practices/project_organization.html)), so we looked at what working projects do. We surveyed 15 open-source Godot games and apps, mostly Godot 4.6–4.7, in November 2026, by reading their repository trees and config files. They range from the official TPS demo and Kenney's FPS starter kit to a commercial Steam game released into the public domain.
+
+| Repo | What it is | Layout | Tests | CI | Git LFS |
+|---|---|---|---|---|---|
+| [Sunder](https://codeberg.org/sunder/sunder) | Tribes-style multiplayer shooter (4.7) | by type: `scenes/`, `scripts/`, `assets/`, `autoloads/`, `configs/` | **GUT** (`tests/`: health, flags, teams, scoreboard) | none in repo | no |
+| [LibreAim](https://codeberg.org/Nokorpo/LibreAim) | FPS aim trainer (4.7) | `modules/` (gameplay manager, main menu, shared) | none | none | no |
+| [Thrive](https://github.com/Revolutionary-Games/Thrive) | evolution game, C# (4.7) | `src/` by game stage, `simulation_parameters/` for balance data, `test/` | **gdUnit4** and C# tests | custom CI image; pre-commit | **self-hosted** |
+| [Super Tux Party](https://gitlab.com/SuperTuxParty/SuperTuxParty) | online party game (4.2) | `client/`, `server/`, `common/`, `plugins/` (each minigame and board is a plugin) | none | exports for every platform plus a Linux server | GitLab |
+| [Source of Mana](https://github.com/sourceofmana/sourceofmana) | 2D MMORPG (4.7) | `sources/` (code by system), `data/` (art, maps, database) | none | **exports on every push**, dev builds to itch.io | no (art sources in a separate repo) |
+| [Reia](https://github.com/Quaint-Studios/Reia) | action RPG with an MMO mode (4.7) | `godot/` subfolder with `client/`, `server/`, `core/`; plus `rust/` and `sql/` | none | exports (Windows, Linux, Mac, server) | **self-hosted** |
+| [Worlds Upon The Wind](https://github.com/max99x/wutw-public) | commercial Steam game released CC0 (4.7) | `wutw/` project folder by system (`cards/`, `run/`, `hub/`…), `art_src/` outside it, C++ GDExtension | none | shell scripts that build and upload to Steam | source PSDs and WAVs only |
+| [Pixelorama](https://github.com/Orama-Interactive/Pixelorama) | pixel-art editor (4.7) | `src/` by area (`UI/`, `Tools/`, `Autoload/`) | none | **gdformat, gdlint, codespell**; dev and release exports | no |
+| [TPS demo](https://github.com/godotengine/tps-demo) | Godot's official third-person shooter demo (4.7) | by feature: `player/`, `enemies/red_robot/{audio,laser}`, `level/` | none | file-format check (UTF-8, LF, trailing spaces) | no |
+| [Starter Kit FPS](https://github.com/KenneyNL/Starter-Kit-FPS) | Kenney's FPS template (4.6) | by type: `objects/`, `scripts/`, `models/`, `sounds/` | none | none | no |
+| [Open RPG](https://github.com/gdquest-demos/godot-open-rpg) | GDQuest's RPG demo (4.7) | `src/` code plus content folders (`combat/`, `overworld/`) | none | none | no |
+| [A Dark Forest](https://github.com/TinyTakinTeller/GodotProjectZero) | incremental game (4.4) | `scenes/`, `resources/`, `global/` | none | **gdlint** | no |
+| [Tanks of Freedom II](https://github.com/P1X-in/Tanks-of-Freedom-3-D) | voxel strategy game (4.4) | `scenes/`, `scripts/`, `campaign/`, `tools/` | none | none | no |
+| [OpenLiberty](https://github.com/FOSS-Supremacy/OpenLiberty) | GTA III reimplementation (4.7) | `scripts/core`, `prefabs/`, `mods/` (cars, weapons) | none | none | no |
+| [Librerama](https://codeberg.org/Yeldham/librerama) | minigame collection (4.6) | `nanogames/` (one folder per minigame), `managers/`, `places/` | none | none | no |
+
+**What nearly everyone does (our repo already does all of this):**
+- `project.godot` sits at the repo root. Projects whose repo also holds native code or a separate server move it to a subfolder: `wutw/`, `godot/`.
+- **`.import` files are committed** in 15/15 repos, and `.uid` files in every 4.4+ project. `.godot/` is always ignored.
+- Third-party code goes in `addons/` (11/15). One project, OpenLiberty, nests a whole controller template there.
+- **Content as data:**
+  - Thrive keeps balance in `simulation_parameters/`.
+  - Worlds Upon The Wind has one `Resource` file per card, relic and event.
+  - Source of Mana edits its database in an editor tab.
+  - We do the same with `game/weapons/data/*.tres` and `game/player/movement/*.tres`.
+
+**Where they differ, and what we chose:**
+- **Feature folders vs type folders.**
+  - By feature or system: the official demo, the commercial game, Thrive, Source of Mana and most of the larger projects. Godot's docs also recommend grouping assets "as close to scenes as possible".
+  - By type (`scenes/` vs `scripts/`): smaller projects such as Sunder, Kenney's kit and Tanks of Freedom II.
+  - Ours is by feature (`game/player/`, `game/weapons/`, `game/world/`). Keep it.
+- **Third-party art location.** Super Tux Party puts each asset next to the scene that uses it. Godot's docs allow either, as long as it's consistent. We keep third-party art grouped by source (`game/assets/polyhaven/`, `…/quaternius/`), because our fetch and build scripts and CREDITS.md work per source.
+- **Client/server split.** Super Tux Party and Reia split their code into `client/`, `server/` and `common/`. Sunder and we use one codebase with authority checks, which Godot's high-level multiplayer is built for. A split starts to pay off when the dedicated-server build needs to strip client-only content.
+- **Autoloads (global singletons).** Counts range from 1 to 29, with a median of 5.
+  - Open RPG and Worlds Upon The Wind use dedicated "event bus" singletons, such as `CombatEvents` and `run_signals.gd`.
+  - Godot's [scene organization](https://docs.godotengine.org/en/stable/tutorials/best_practices/scene_organization.html) guide recommends autoloads only for truly global systems.
+  - We have two (`Network`, `Settings`). Add more only with a reason.
+- **`export_presets.cfg`.** It's committed in 9/15 repos, mostly the ones that export in CI. Since Godot 4.1, export credentials live in `.godot/export_credentials.cfg`, not in this file ([Godot: VCS](https://docs.godotengine.org/en/stable/tutorials/best_practices/version_control_systems.html)), so committing it is safe. We'll commit it when we add exports.
+
+**Typing warnings.**
+- 6/15 tighten Godot's warnings:
+  - Sunder makes shadowing and unreachable code errors.
+  - Source of Mana treats every warning as an error.
+  - Worlds Upon The Wind, Reia, Librerama and A Dark Forest raise `untyped_declaration` to a warning.
+- Two others only relax them.
+- Our `untyped_declaration = error` is at the strict end, alongside Sunder and Source of Mana.
+
+**Testing and tooling are rare.**
+- **Tests:** only Sunder (GUT) and Thrive (gdUnit4) have automated tests. Sunder's README runs them with `godot --headless -s addons/gut/gut_cmdln.gd -gdir tests/ -gexit`. Sunder is the project most like ours, which makes GUT the natural choice if we outgrow our own runner.
+- **Lint in CI:** only Pixelorama (`gdformat --diff`, `gdlint`, codespell), A Dark Forest (`gdlint`) and the TPS demo (a text-format script).
+- **Licence checks:** Super Tux Party's `check_license.py` checks that every asset is listed in a licence file. We adopted the same idea as a test.
+
+**Git LFS is the minority choice, and it has a cost.**
+- Only 4/15 use it.
+- Thrive and Reia run their *own* LFS servers.
+- Thrive's guide warns that "it is not possible [to] commit changes to Git LFS if you are not a team member", which is real friction for outside contributors.
+- Worlds Upon The Wind uses LFS only for source files (PSDs, WAVs), not the assets the game loads.
+- Source of Mana keeps art source files in a separate repository.
+- This supports our current choice: plain git, compressed runtime assets in the repo, and no large source files (`.blend`, `.psd`) inside the Godot project.
+
+**Release engineering is where we're behind.** Five projects export builds in CI:
+- Source of Mana, Super Tux Party and Reia use the [barichello/godot-ci](https://github.com/abarichello/godot-ci) container or cached export templates.
+- Super Tux Party and Reia build a separate dedicated-server export.
+- Source of Mana uploads a dev build of every push to itch.io.
+
+Worlds Upon The Wind adds what a shipped game needs:
+- An exporter plugin that stamps the git commit into builds.
+- An in-game bug reporter that sends logs, the save file and a screenshot.
+- A debug console.
+- An editor dock that starts the game from any story point.
+
+These are on our roadmap.
+
+**How contributions are governed:**
+- **Sunder** (the closest project to ours):
+  - Requires AI disclosure, and states that "an AI agent may not contribute directly to the project", which is stricter than our opt-in rule.
+  - AI-only changes must be "non-creative".
+  - Grants repository membership after one merged PR.
+- **Source of Mana:** asks people to chat before "anything bigger than a trivial fix" and refuses AI-generated assets.
+- **Super Tux Party:** requires sign-off and licence-file updates, and uses a `dev` integration branch.
+- **Thrive:** has a PR testing checklist and an `AGENTS.md` for AI coding tools, the equivalent of our `CLAUDE.md`.
+
+## 9. What we adopted, deferred and rejected
 
 **Adopted in this change:**
 
@@ -221,6 +316,8 @@ For a community game:
 | `gdlint` 4.5.0 in CI, with a pinned version and `gdlintrc` | Cheap, catches order and naming drift. Line limit 120 (the style guide asks for under 100; 120 is the hard ceiling). |
 | Optional `.pre-commit-config.yaml` | Same idea as Godot's pre-commit setup, for people who want failures before pushing. |
 | Contributing guide rewritten around problem-first issues, one-change PRs, a PR description checklist, review order, profiler evidence for performance work, network-condition testing and MRP bug reports | Godot, Luanti, Rare, Riot and Valve evidence above. |
+| "Where things go" rules in contributing.md: feature folders, snake_case for new files, third-party code in `addons/`, source art outside `res://`, few autoloads | Repo survey (§8) and Godot's project organization guide. |
+| Test: every file under `game/assets/` is covered by a path in CREDITS.md | Super Tux Party's `check_license.py`; provenance checked by CI, not memory. |
 
 **Deferred:**
 
@@ -230,7 +327,9 @@ For a community game:
 | Automated performance benchmarks in CI | We have a GPU runner. Headless CI only measures CPU, and noisily. |
 | Network simulator in tests | Client prediction lands (it's on the roadmap). |
 | Crash reporting (sentry-godot) | There is a release build and a privacy policy, with opt-in. |
-| Git LFS | The repo passes about 500 MB, or contributors complain about clone size. |
+| Git LFS | The repo passes about 500 MB, or contributors complain about clone size. If we do, use it only for runtime assets: only 4 of 15 surveyed repos use it, and external contributors can't push to a self-hosted LFS server. |
+| Export presets and CI builds (client and dedicated server), with the git commit stamped into each build | We have something to playtest outside the editor. This is the next step, following the Source of Mana, Super Tux Party and Reia pattern. |
+| In-game bug reporter, debug console | The first public playtest (Worlds Upon The Wind pattern). |
 
 **Rejected for now:**
 - **Enforcing `gdformat`.** It would rewrite 16 of our 21 scripts, including awkward dictionary layouts, and it's a third-party tool rather than Godot's own. Unlike Prettier, it isn't a near-universal default. The style guide plus `gdlint` covers what matters. Revisit if formatting starts to clutter reviews.
@@ -251,6 +350,12 @@ For a community game:
 - [netfox network simulator](https://foxssake.github.io/netfox/latest/netfox.extras/guides/network-simulator)
 - [sentry-godot](https://github.com/getsentry/sentry-godot) and its [1.0 announcement](https://blog.sentry.io/introducing-sentrys-godot-sdk-1-0-alpha-with-support-for-godot-4-5-beta)
 - [GitHub LFS billing](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-storage-and-bandwidth-usage)
+
+**Surveyed Godot repositories** (§8; trees and config files read on 1 Nov 2026):
+- Games and demos: [Sunder](https://codeberg.org/sunder/sunder), [LibreAim](https://codeberg.org/Nokorpo/LibreAim), [Thrive](https://github.com/Revolutionary-Games/Thrive), [Super Tux Party](https://gitlab.com/SuperTuxParty/SuperTuxParty), [Source of Mana](https://github.com/sourceofmana/sourceofmana), [Reia](https://github.com/Quaint-Studios/Reia), [Worlds Upon The Wind](https://github.com/max99x/wutw-public), [TPS demo](https://github.com/godotengine/tps-demo), [Starter Kit FPS](https://github.com/KenneyNL/Starter-Kit-FPS), [Open RPG](https://github.com/gdquest-demos/godot-open-rpg), [A Dark Forest](https://github.com/TinyTakinTeller/GodotProjectZero), [Tanks of Freedom II](https://github.com/P1X-in/Tanks-of-Freedom-3-D), [OpenLiberty](https://github.com/FOSS-Supremacy/OpenLiberty), [Librerama](https://codeberg.org/Yeldham/librerama)
+- App: [Pixelorama](https://github.com/Orama-Interactive/Pixelorama)
+- Selected from [awesome-godot](https://github.com/godotengine/awesome-godot)
+- Godot docs: [project organization](https://docs.godotengine.org/en/stable/tutorials/best_practices/project_organization.html), [scene organization](https://docs.godotengine.org/en/stable/tutorials/best_practices/scene_organization.html)
 
 **Other open-source games:**
 - Luanti: [CONTRIBUTING](https://github.com/luanti-org/luanti/blob/master/.github/CONTRIBUTING.md), [AI policy](https://github.com/luanti-org/luanti/blob/master/doc/developing/ai_policy.md), [direction](https://github.com/luanti-org/luanti/blob/master/doc/direction.md)

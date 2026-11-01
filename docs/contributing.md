@@ -24,6 +24,19 @@ idea / bug / balance gripe
 
 ## Engineering practices
 
+### Where things go
+
+This follows Godot's [project organization guide](https://docs.godotengine.org/en/stable/tutorials/best_practices/project_organization.html) and what larger open-source Godot games do ([survey](research/engineering-practices.md#8-how-godot-game-repositories-are-structured)).
+
+- **Group by feature, not by file type.** A feature's scenes, scripts and resources live together under `game/<feature>/` (`player/`, `weapons/`, `world/`, …). Don't create top-level `scripts/` or `scenes/` folders.
+- **Data next to its feature:** `game/weapons/data/` and `game/player/movement/`. Add one `.tres` file per item, such as one per weapon, not a big table in code.
+- **Third-party art** goes in `game/assets/<source>/`, so the fetch and build scripts and CREDITS.md can work per source. Every file there must be covered by a CREDITS.md entry; a test checks this.
+- **Third-party code and plugins** go in `addons/`, vendored and pinned, and listed in CREDITS.md.
+- **Source files** (`.blend`, `.psd`, raw recordings) don't go inside the project. Keep them outside the repo, or in a folder with an empty `.gdignore`, so Godot doesn't import them.
+- **Names:** use snake_case for new files and folders. Godot's exported filesystem is case-sensitive while Windows and macOS aren't, so mixed case causes bugs that only appear in exported builds. Files from a vendor keep their original names.
+- **Autoloads** (global singletons) are for truly global services: `Network` and `Settings` today. Prefer signals on the node that owns the event. Add an autoload only with a reason in the PR.
+- **Tooling:** `tools/` holds Python helpers for assets and `tests/` holds tests. Neither is part of the game.
+
 ### Code
 
 - **Static types everywhere.** Untyped declarations are compile errors (`[debug]` in `project.godot`), and the test runner compiles every script before it runs any test. Use `## ` doc comments on public functions.
