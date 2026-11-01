@@ -25,8 +25,17 @@ What works today:
   - Double jump, wall-running, wall-jumps and mantling.
   - Tuning lives in [`game/player/movement/default.tres`](game/player/movement/default.tres).
 - **Smooth at any frame rate**: physics interpolation, a camera updated every rendered frame, and snapshot interpolation for other players.
-- Two hitscan weapons (rifle and pistol) with view-model sway, bob and recoil, muzzle flash, tracers, impacts and bullet holes. They use realistic CC0 models and animated third-person characters.
-- Graphics presets from Low to Ultra (FSR upscaling, SMAA/MSAA, SSAO, SSIL, volumetric fog, SDFGI), plus FOV and sensitivity settings, in the menu and the in-game pause menu.
+- Two hitscan weapons (rifle and pistol) using realistic CC0 models:
+  - First-person arms whose hands are placed on the gun by inverse kinematics, so they follow sway, recoil and reloads.
+  - View-model sway, bob and recoil; muzzle flash, tracers, impacts and bullet holes.
+  - Animated third-person characters.
+- **Audio**:
+  - Recorded AK-47 and 1911 gunshots: close up for your own gun, distant takes for far-away players.
+  - Reloads, footsteps that change with the surface (concrete or metal), and bullet impacts per surface.
+  - Jump-jet, landing, slide, and wind at speed.
+  - Hit-marker and kill ticks.
+  - Other players' footsteps and shots are positional, so you can hear them coming.
+- Graphics presets from Low to Ultra (FSR upscaling, SMAA/MSAA, SSAO, SSIL, volumetric fog, SDFGI), plus volume, FOV and sensitivity settings, in the menu and the in-game pause menu.
 - Online multiplayer: host, join, or run a headless dedicated server. The server decides hits, damage, ammo and respawns.
 - Weapon balance and movement tuning are stored as plain-text data, so a change is a one-line diff.
 
@@ -82,8 +91,9 @@ game/
   weapons/models/         weapon scenes and materials
   world/                  Training Garage map, materials, game-mode script, target dummy
   fx/                     muzzle flash, tracers, impacts (code only, no textures)
-  assets/                 third-party CC0 models, textures and HDRI (see CREDITS.md)
-tools/                    asset fetch / import helpers
+  audio/sfx.gd            sound banks and playback helpers
+  assets/                 third-party CC0 models, textures, HDRI and audio (see CREDITS.md)
+tools/                    asset fetch / import / audio build helpers
 tests/                    headless tests and multiplayer smoke test
 docs/                     roadmap, architecture, contributing, research
 ```

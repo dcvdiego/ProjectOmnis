@@ -24,6 +24,8 @@ var invert_y := false
 var auto_sprint := false
 var vsync := false
 var max_fps := 0
+## 0..1, applied to the Master audio bus.
+var master_volume := 0.8
 
 
 func _ready() -> void:
@@ -83,6 +85,7 @@ func apply() -> void:
 			vp.positional_shadow_atlas_size = 4096
 			RenderingServer.directional_shadow_atlas_set_size(8192, true)
 			RenderingServer.directional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_HIGH)
+	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(master_volume, 0.0001)))
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
 	Engine.max_fps = max_fps
 	for env_node in get_tree().get_nodes_in_group("world_environment"):
@@ -124,11 +127,12 @@ func load_settings() -> void:
 			set(key, cfg.get_value("settings", key))
 	quality = clampi(quality, 0, Quality.size() - 1) as Quality
 	fov = clampf(fov, 70.0, 120.0)
+	master_volume = clampf(master_volume, 0.0, 1.0)
 
 
 func _keys() -> PackedStringArray:
 	return PackedStringArray(["quality", "fov", "fov_boost", "mouse_sensitivity", "stick_sensitivity",
-		"invert_y", "auto_sprint", "vsync", "max_fps"])
+		"invert_y", "auto_sprint", "vsync", "max_fps", "master_volume"])
 
 
 func _on_node_added(node: Node) -> void:

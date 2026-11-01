@@ -27,7 +27,8 @@ Player (player.gd, CharacterBody3D)
 ├─ Character (character_model.gd)   animated third-person body + held weapon
 ├─ Head                        eye point (replicated pitch / height), used by the server
 ├─ Camera3D (top-level)        owner only; placed every rendered frame
-│  └─ ViewModel                first-person weapons
+│  └─ ViewModel                first-person weapons + arms (ArmIK)
+├─ Audio (player_audio.gd)     shots, footsteps, movement sounds
 ├─ Synchronizer                replicates net_position / yaw / pitch / velocity / state / height
 └─ HUD
 ```
@@ -113,6 +114,28 @@ Fast movement exposes every hitch, so:
 - Characters use Quaternius' CC0 animation library. An `AnimationTree` crossfades locomotion clips and blends an upper-body aim pose (filtered to spine and arms) driven by the replicated pitch.
 - Asset sources and licences are in [CREDITS.md](../CREDITS.md). `tools/` holds the Poly Haven fetcher and the texture-import fixer.
 
+## First-person arms
+
+The view model shows your own arms: the same CC0 mannequin as the third-person character, with a dimmer accent colour.
+- **Hiding.** The head and legs are collapsed, and the rig sits so the chest stays below the screen.
+- **IK.** `ArmIK` (`game/player/arm_ik.gd`, a `SkeletonModifier3D`) solves analytic two-bone IK every frame, from shoulder to elbow to wrist, onto `GripR` and `GripL` markers on the weapon scene. Elbows bend towards pole markers. Each hand is rotated to its marker (marker -Z = knuckles, +Y = back of hand), and the fingers are curled around the grip.
+- **Free animation.** Sway, recoil, sprint and swap motions only move the gun, and the hands follow. During a reload the support hand travels to the `MagWell` marker and drops out of view.
+- **New weapons** need `GripR`, `GripL` and (optionally) `MagWell` markers. `tests/suite.gd` checks that both hands actually reach them.
+- **Reading poses.** Modified poses only exist until skinning, so read them in `modification_processed`.
+
+## Audio
+
+- `Sfx` (`game/audio/sfx.gd`) holds the sound banks and fire-and-forget 2D/3D players.
+- **Buses.** World sounds go to the `World` bus, which has a light outdoor reverb. `Master` has a hard limiter, so many overlapping shots can't clip. The volume setting drives `Master`.
+- **One component, two outputs.** `PlayerAudio` reads the replicated `net_*` state:
+  - For the **local** player it plays non-positional sounds and uses the motor's jump and land signals.
+  - For **remote** players it plays 3D sounds, inferring jumps and landings from state changes.
+  - So other players' footsteps, jets and landings are audible without extra network messages.
+- **Surfaces.** `Sfx.surface_of(collider)` classifies concrete, metal or flesh for footsteps and impacts. Shot effects carry the surface id from the server.
+- **Weapon sounds are data.** Each `WeaponData` has `fire_sounds` (close, stereo), `fire_sounds_far` (mid-distance takes, used beyond 25 m) and `reload_sound`.
+- Dedicated servers (headless) play nothing.
+- View-model and camera springs are integrated in fixed sub-steps (`ViewModel.spring`). A single big step on a slow frame made the recoil spring explode.
+
 ## Data-driven balance
 
 `WeaponData` (`game/weapons/weapon_data.gd`) holds damage, rate of fire, range, magazine and reload time. Each weapon is a `.tres` text file. `tests/run_tests.gd` enforces guardrails on these values, such as "no weapon kills a full-health player in one shot".
@@ -124,6 +147,6 @@ Fast movement exposes every hitch, so:
   - scene loading
   - server combat rules, run offline (this process is peer 1)
   - movement, in a code-built test arena: speed caps, jump height, double jump, the air-strafe exploit guard, slide boost and decay, wall-run and wall-jump, mantle, and the low-ceiling crouch
-  - snapshot interpolation
+  - snapshot interpolation, spring stability, audio data and surfaces, and first-person hands reaching their grips
 - `tests/smoke_multiplayer.sh`: starts a real dedicated server and a client, then checks the client's player is spawned and replicated.
 - CI (`.github/workflows/ci.yml`): pinned Godot version with checksum verification, read-only token, no secrets.

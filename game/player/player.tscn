@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://game/characters/character.tscn" id="6_character"]
 [ext_resource type="Script" path="res://game/player/view_model.gd" id="7_view_model"]
 [ext_resource type="Script" path="res://game/player/hud.gd" id="8_hud"]
+[ext_resource type="Script" path="res://game/player/player_audio.gd" id="9_audio"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 resource_local_to_scene = true
@@ -62,6 +63,9 @@ script = ExtResource("7_view_model")
 [node name="Synchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_interval = 0.0166
 replication_config = SubResource("SceneReplicationConfig_player")
+
+[node name="Audio" type="Node" parent="."]
+script = ExtResource("9_audio")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 script = ExtResource("8_hud")

@@ -24,6 +24,11 @@ extends Resource
 @export var recoil_kick := 0.8
 ## Third-person hold offset relative to the right hand.
 @export var hand_offset := Transform3D.IDENTITY
+## Shots as the shooter hears them (picked at random).
+@export var fire_sounds: Array[AudioStream] = []
+## Shots as other players hear them from a distance.
+@export var fire_sounds_far: Array[AudioStream] = []
+@export var reload_sound: AudioStream
 
 
 func seconds_between_shots() -> float:

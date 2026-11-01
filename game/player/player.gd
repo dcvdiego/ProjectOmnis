@@ -61,6 +61,7 @@ var _land_dip_velocity := 0.0
 var _recoil := 0.0
 var _tilt := 0.0
 var _fov_boost := 0.0
+var _shown_weapon := -1
 
 # Remote-client state: [time, position, yaw, pitch] snapshots.
 var _snapshots: Array[Array] = []
@@ -72,6 +73,7 @@ var _snapshots: Array[Array] = []
 @onready var character: CharacterModel = $Character
 @onready var hud: Hud = $HUD
 @onready var synchronizer: MultiplayerSynchronizer = $Synchronizer
+@onready var audio: PlayerAudio = $Audio
 
 
 func _enter_tree() -> void:
@@ -85,6 +87,7 @@ func _ready() -> void:
 	ammo = _server_ammo[weapon_index] if not _server_ammo.is_empty() else 0
 	motor = PlayerMotor.new(self, collision_shape, movement)
 	motor.landed.connect(_on_landed)
+	audio.setup(self)
 
 	var is_local := is_multiplayer_authority()
 	camera.current = is_local
@@ -256,8 +259,9 @@ func _process(delta: float) -> void:
 
 	# Eye height eases between standing and crouching; landing adds a dip.
 	_eye_height_smooth = lerpf(_eye_height_smooth, motor.eye_height(), 1.0 - exp(-14.0 * delta))
-	_land_dip_velocity += (-_land_dip * 120.0 - _land_dip_velocity * 16.0) * delta
-	_land_dip += _land_dip_velocity * delta
+	var dip := ViewModel.spring(_land_dip, _land_dip_velocity, 120.0, 16.0, delta)
+	_land_dip = dip.x
+	_land_dip_velocity = dip.y
 	_recoil = lerpf(_recoil, 0.0, 1.0 - exp(-10.0 * delta))
 
 	var target_tilt := 0.0
@@ -305,6 +309,7 @@ func _try_fire() -> void:
 		return
 	if ammo <= 0:
 		_request_reload.rpc_id(1)
+		audio.dry_fire()
 		_local_next_fire_time = now + 0.25
 		return
 	# Client-side throttle only saves bandwidth; the server enforces the real limit.
@@ -317,12 +322,13 @@ func _try_fire() -> void:
 	# Immediate cosmetic feedback; the server decides what actually got hit.
 	_recoil += weapon.recoil_kick
 	var muzzle := view_model.fire()
+	audio.shot(weapon, muzzle)
 	var end := origin + direction * weapon.max_range
 	var hit := get_world_3d().direct_space_state.intersect_ray(
 		PhysicsRayQueryParameters3D.create(origin, end, HIT_MASK, [get_rid()]))
 	if not hit.is_empty():
 		end = hit.position
-		Fx.impact(get_parent(), hit.position, hit.normal, hit.collider.has_method("take_damage"))
+		Fx.impact(get_parent(), hit.position, hit.normal, Sfx.surface_of(hit.collider))
 	Fx.tracer(get_parent(), muzzle, end)
 
 
@@ -352,15 +358,17 @@ func _request_fire(origin: Vector3, direction: Vector3) -> void:
 	var query := PhysicsRayQueryParameters3D.create(origin, end, HIT_MASK, [get_rid()])
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	var normal := Vector3.ZERO
-	var hit_player := false
+	var surface := Sfx.Surface.NONE
 	if not hit.is_empty():
 		end = hit.position
 		normal = hit.normal
-		hit_player = hit.collider.has_method("take_damage")
+		surface = Sfx.surface_of(hit.collider)
 		if hit.collider.has_method("take_damage"):
+			var target_alive := int(hit.collider.get("health")) > 0
 			hit.collider.take_damage(weapon.damage, peer_id())
-			_confirm_hit.rpc_id(peer_id())
-	_shot_fx.rpc(end, normal, hit_player)
+			var killed := target_alive and int(hit.collider.get("health")) <= 0
+			_confirm_hit.rpc_id(peer_id(), killed)
+	_shot_fx.rpc(end, normal, surface)
 	_server_sync_weapon_state()
 
 
@@ -435,9 +443,14 @@ func _set_health(value: int) -> void:
 	if multiplayer.get_remote_sender_id() != 1:
 		return
 	var was_alive := is_alive()
+	var was_health := health
 	health = value
 	collision_shape.disabled = not is_alive()
 	character.set_dead(not is_alive())
+	if was_alive and not is_alive():
+		audio.died()
+	elif value < was_health and is_multiplayer_authority():
+		audio.hurt()
 	if is_multiplayer_authority():
 		view_model.visible = is_alive()
 		if was_alive and not is_alive():
@@ -468,31 +481,36 @@ func _sync_weapon_state(index: int, rounds: int, reloading: bool) -> void:
 	weapon_index = index
 	ammo = rounds
 	is_reloading = reloading
+	if _shown_weapon >= 0 and index != _shown_weapon:
+		audio.weapon_switched()
 	_update_weapon_visuals()  # no-op when unchanged
 	if started_reload:
 		if is_multiplayer_authority():
 			view_model.reload(current_weapon().reload_time)
 		character.play_reload()
+		audio.reload(current_weapon())
 	_update_hud()
 
 
 @rpc("any_peer", "call_local", "unreliable")
-func _confirm_hit() -> void:
+func _confirm_hit(killed: bool) -> void:
 	if multiplayer.get_remote_sender_id() != 1:
 		return
 	hud.show_hit_marker()
+	audio.hit_confirmed(killed)
 
 
 ## Tracer and impact for everyone except the shooter (who already drew them).
 @rpc("any_peer", "call_local", "unreliable")
-func _shot_fx(end: Vector3, normal: Vector3, hit_player: bool) -> void:
+func _shot_fx(end: Vector3, normal: Vector3, surface: int) -> void:
 	if multiplayer.get_remote_sender_id() != 1 or is_multiplayer_authority():
 		return
 	if DisplayServer.get_name() == "headless":
 		return
 	var muzzle := character.fire()
+	audio.shot(current_weapon(), muzzle)
 	if normal != Vector3.ZERO:
-		Fx.impact(get_parent(), end, normal, hit_player)
+		Fx.impact(get_parent(), end, normal, surface)
 	Fx.tracer(get_parent(), muzzle, end)
 
 
@@ -501,6 +519,7 @@ func _shot_fx(end: Vector3, normal: Vector3, hit_player: bool) -> void:
 func _update_weapon_visuals() -> void:
 	if not is_node_ready() or weapons.is_empty():
 		return
+	_shown_weapon = weapon_index
 	character.set_weapon(weapon_index)
 	if is_multiplayer_authority():
 		view_model.set_weapon(weapon_index)

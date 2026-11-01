@@ -25,6 +25,9 @@ const CLIP_SPEED := {
 ## Render layer for characters (keeps bullet-hole decals off them).
 const CHARACTER_LAYER := 1 << 1
 
+static var _suit_materials := {}
+static var _suit_meshes := {}
+
 ## Where the grip sits relative to the right hand, in the aim frame.
 const GRIP_OFFSET := Vector3(0.0, -0.03, -0.07)
 
@@ -216,26 +219,53 @@ func _play(clip: String, _blend: float) -> void:
 
 
 func _apply_materials() -> void:
-	var suit := StandardMaterial3D.new()
-	suit.albedo_color = suit_color
-	suit.metallic = 0.45
-	suit.roughness = 0.42
-	suit.rim_enabled = true
-	suit.rim = 0.25
-	suit.rim_tint = 0.6
-	var accent := StandardMaterial3D.new()
-	accent.albedo_color = accent_color
-	accent.roughness = 0.3
-	accent.emission_enabled = true
-	accent.emission = accent_color
-	accent.emission_energy_multiplier = 1.4
-	for node in visual.find_children("*", "MeshInstance3D", true, false):
-		var mesh := node as MeshInstance3D
-		mesh.layers = CHARACTER_LAYER
-		for i in mesh.mesh.get_surface_count():
-			var source := mesh.mesh.surface_get_material(i)
-			var is_joint := source != null and "Joint" in source.resource_name
-			mesh.set_surface_override_material(i, accent if is_joint else suit)
+	var materials := make_suit_materials(suit_color, accent_color)
+	apply_suit(visual, materials[0], materials[1], CHARACTER_LAYER)
+
+
+## Graphite sim-suit material and its glowing accent (joints). Cached per
+## colour pair, so characters with the same colours share materials and meshes.
+static func make_suit_materials(suit: Color, accent: Color) -> Array[StandardMaterial3D]:
+	var key := "%s/%s" % [suit.to_html(), accent.to_html()]
+	if _suit_materials.has(key):
+		return _suit_materials[key]
+	var body := StandardMaterial3D.new()
+	body.albedo_color = suit
+	body.metallic = 0.45
+	body.roughness = 0.42
+	body.rim_enabled = true
+	body.rim = 0.25
+	body.rim_tint = 0.6
+	var glow := StandardMaterial3D.new()
+	glow.albedo_color = accent
+	glow.roughness = 0.3
+	glow.emission_enabled = true
+	glow.emission = accent
+	glow.emission_energy_multiplier = 1.4
+	var materials: Array[StandardMaterial3D] = [body, glow]
+	_suit_materials[key] = materials
+	return materials
+
+
+## Applies suit materials to every mesh under `root` (the mannequin from the
+## Universal Animation Library has a "Main" and a "Joints" surface).
+##
+## Materials are set on a copy of the mesh rather than as surface overrides
+## (overrides on this imported skinned mesh make the headless renderer used by
+## dedicated servers log errors). Copies are cached per material pair.
+static func apply_suit(root: Node, body: Material, glow: Material, layers: int) -> void:
+	for node in root.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		mesh_instance.layers = layers
+		var key := "%d/%d/%d" % [mesh_instance.mesh.get_rid().get_id(), body.get_instance_id(), glow.get_instance_id()]
+		if not _suit_meshes.has(key):
+			var mesh := mesh_instance.mesh.duplicate() as Mesh
+			for i in mesh.get_surface_count():
+				var source := mesh.surface_get_material(i)
+				var is_joint := source != null and "Joint" in source.resource_name
+				(mesh as ArrayMesh).surface_set_material(i, glow if is_joint else body)
+			_suit_meshes[key] = mesh
+		mesh_instance.mesh = _suit_meshes[key]
 
 
 func _apply_visibility() -> void:

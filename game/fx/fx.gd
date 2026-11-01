@@ -75,9 +75,13 @@ static func tracer(parent: Node, from: Vector3, to: Vector3) -> void:
 	m.get_tree().create_timer(TRACER_LIFE).timeout.connect(m.queue_free)
 
 
-static func impact(parent: Node, position: Vector3, normal: Vector3, flesh: bool) -> void:
+## `surface` is a `Sfx.Surface`; it picks the particle colour and the sound.
+static func impact(parent: Node, position: Vector3, normal: Vector3, surface: int) -> void:
 	if not enabled() or parent == null:
 		return
+	var flesh := surface == Sfx.Surface.FLESH
+	var sounds: Array = Sfx.IMPACTS.get(Sfx.SURFACE_NAMES[surface], [])
+	Sfx.play_3d(parent, Sfx.pick(sounds), position, -8.0 if flesh else -6.0, 3.0, 50.0, 0.1)
 	var sparks := CPUParticles3D.new()
 	sparks.one_shot = true
 	sparks.emitting = false

@@ -27,6 +27,9 @@ func run() -> void:
 	await _test_server_combat_rules()
 	await _test_movement()
 	_test_snapshot_interpolation()
+	_test_audio()
+	_test_springs()
+	await _test_first_person_arms()
 
 
 func create_timer(seconds: float) -> SceneTreeTimer:
@@ -311,3 +314,62 @@ func _test_snapshot_interpolation() -> void:
 	var ahead: Array = p._sample_snapshots(2.0)
 	_check((ahead[0] as Vector3).is_equal_approx(Vector3(2.5, 0, 0)), "extrapolation is capped at 0.15 s")
 	p.free()
+
+
+func _test_audio() -> void:
+	_check(AudioServer.get_bus_index(Sfx.WORLD_BUS) >= 0, "World audio bus exists")
+	for file: String in Array(DirAccess.get_files_at(WEAPON_DIR)).filter(func(f: String) -> bool: return f.ends_with(".tres")):
+		var weapon := load(WEAPON_DIR + file) as WeaponData
+		_check(not weapon.fire_sounds.is_empty() and not weapon.fire_sounds.has(null), "%s has fire sounds" % file)
+		_check(not weapon.fire_sounds_far.is_empty(), "%s has distant fire sounds" % file)
+		_check(weapon.reload_sound != null, "%s has a reload sound" % file)
+	var metal := CSGBox3D.new()
+	metal.material = load("res://game/world/materials/metal_plate.tres")
+	_check(Sfx.surface_of(metal) == Sfx.Surface.METAL, "metal-plate geometry sounds like metal")
+	var floor := CSGBox3D.new()
+	floor.material = load("res://game/world/materials/concrete_floor.tres")
+	_check(Sfx.surface_of(floor) == Sfx.Surface.CONCRETE, "concrete geometry sounds like concrete")
+	var dummy := (load("res://game/world/target_dummy.tscn") as PackedScene).instantiate()
+	_check(Sfx.surface_of(dummy) == Sfx.Surface.FLESH, "damageable targets sound like flesh")
+	for node: Node in [metal, floor, dummy]:
+		node.free()
+
+
+## The first-person hands should actually reach the weapon's grip markers.
+func _test_first_person_arms() -> void:
+	var arena := _movement_arena()
+	root.add_child(arena)
+	var p := _spawn_mover(arena, Vector3(30, 0.05, 30))
+	for i in 6:
+		await process_frame
+	var vm := p.view_model
+	var skeleton := vm._arms.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	# Modified poses only exist until skinning, so sample them as soon as the
+	# IK modifier has run.
+	var hands := {}
+	var sample := func() -> void:
+		for side: String in ["r", "l"]:
+			hands[side] = (skeleton.global_transform * skeleton.get_bone_global_pose(skeleton.find_bone("hand_" + side))).origin
+	vm._ik.modification_processed.connect(sample)
+	for index in p.weapons.size():
+		vm.set_weapon(index)
+		vm._swap = 0.0
+		for i in 4:
+			await process_frame
+		var model: WeaponModel = vm._models[index]
+		for side: String in ["r", "l"]:
+			var marker := model.grip_right if side == "r" else model.grip_left
+			# Compare in unscaled metres (view models are drawn at VIEW_SCALE).
+			var error := (hands.get(side, Vector3.INF) as Vector3).distance_to(marker.global_position) / ViewModel.VIEW_SCALE
+			_check(error < 0.03, "%s: %s hand reaches its grip (off by %.3f m)" % [p.weapons[index].display_name, side, error])
+	arena.queue_free()
+	await process_frame
+
+
+## View-model springs must settle even with long frames (hitches, slow GPUs).
+func _test_springs() -> void:
+	for dt: float in [1.0 / 144.0, 1.0 / 30.0, 0.1, 0.25]:
+		var state := Vector2(0.0, 9.0)  # a recoil kick
+		for i in ceili(1.5 / dt):
+			state = ViewModel.spring(state.x, state.y, 260.0, 22.0, dt)
+		_check(absf(state.x) < 0.01 and absf(state.y) < 0.1, "recoil spring settles at dt=%.3f" % dt)

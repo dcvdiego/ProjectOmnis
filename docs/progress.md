@@ -15,6 +15,8 @@ The 2022 plan (BR map + 2 × 5v5 + 2 MP maps + rig) was studio-sized. The restar
 - **Feel:** physics interpolation, per-frame camera, remote snapshot interpolation, view-model sway, bob and recoil, landing dip, speed FOV, wall-run camera tilt
 - **Look:** CC0 photoscanned materials, HDRI sky, props, realistic weapon models, animated third-person characters, muzzle flash, tracers, impacts, bullet holes
 - Graphics presets (Low to Ultra), FOV and sensitivity settings, pause menu
+- **Audio:** recorded CC0 gunshots (near and far), reloads, surface-aware footsteps and impacts, movement sounds, hit and kill ticks; positional sound for other players; volume setting
+- **First-person arms:** IK hands on the weapon grips, support hand moves for reloads
 
 ## Next: playable vertical slice
 
@@ -23,8 +25,8 @@ The 2022 plan (BR map + 2 × 5v5 + 2 MP maps + rig) was studio-sized. The restar
 - [ ] Sync current state to late joiners (other players' health and weapons)
 - [ ] Simple FFA / TDM scoring and round loop
 - [ ] First small arena map (greybox), 2–8 players
-- [ ] Audio: CC0 weapon, footstep and impact sounds (e.g. Sonniss GDC bundles, Kenney audio, freesound CC0)
-- [ ] First-person arms (hands on the gun) and reload animations
+- [ ] Hand-authored reload animations (magazine out/in) on top of the IK arms
+- [ ] Occlusion / low-pass for sounds behind walls
 - [ ] 8-way locomotion blending and a proper slide / wall-run pose for third-person characters
 - [ ] Key rebinding
 - [ ] Test the graphics presets on low-end GPUs and the Steam Deck; set frame-time budgets

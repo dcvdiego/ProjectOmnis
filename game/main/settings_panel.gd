@@ -15,6 +15,9 @@ func _ready() -> void:
 	quality.item_selected.connect(func(i: int) -> void: Settings.set_quality(i))
 	_row("Graphics", quality)
 
+	_row("Volume", _slider(0, 100, 1, Settings.master_volume * 100.0, func(v: float) -> void:
+		Settings.master_volume = v / 100.0
+		AudioServer.set_bus_volume_db(0, linear_to_db(maxf(Settings.master_volume, 0.0001))), "%d%%"))
 	_row("Field of view", _slider(70, 120, 1, Settings.fov, func(v: float) -> void: Settings.fov = v, "%d°"))
 	_row("Speed FOV boost", _slider(0, 15, 1, Settings.fov_boost, func(v: float) -> void: Settings.fov_boost = v, "+%d°"))
 	_row("Mouse sensitivity", _slider(0.1, 4.0, 0.05, Settings.mouse_sensitivity,

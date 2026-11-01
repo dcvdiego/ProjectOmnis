@@ -11,6 +11,10 @@ extends Node3D
 @export var sight_material: Material
 
 @onready var muzzle: Marker3D = $Muzzle
+## Where the first-person hands go (see `ArmIK`). Optional.
+@onready var grip_right: Marker3D = get_node_or_null("GripR")
+@onready var grip_left: Marker3D = get_node_or_null("GripL")
+@onready var mag_well: Marker3D = get_node_or_null("MagWell")
 
 
 func _ready() -> void:

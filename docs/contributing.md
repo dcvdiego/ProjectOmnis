@@ -41,6 +41,7 @@ idea / bug / balance gripe
 - Add every asset to [CREDITS.md](../CREDITS.md) with author, licence, source and tools used (including AI tools).
 - Prefer text formats Godot can diff (`.tscn`, `.tres`). Ask in the issue before adding more than a few MB of binaries. Keep textures at 1K (2K for large surfaces such as floors), as JPG unless they need alpha. The repo has about 60 MB of assets today; if that grows a lot we'll move binaries to Git LFS.
 - **Poly Haven** (CC0) assets: add them to `tools/polyhaven_manifest.json` and run `python3 tools/fetch_polyhaven.py`. Downloads are MD5-checked and the authors are recorded automatically.
+- **Audio:** OGG Vorbis, mono for positional sounds. Add sources and cut points to `tools/build_audio.py` so every sound can be rebuilt from its original.
 - After adding textures, run `python3 tools/fix_texture_imports.py` and re-import. Headless imports otherwise leave textures uncompressed and without mipmaps.
 
 ## Security
