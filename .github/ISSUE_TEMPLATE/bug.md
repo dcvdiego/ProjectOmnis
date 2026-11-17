@@ -13,7 +13,10 @@ labels: bug
 **Expected**
 
 **Version / platform**
-Commit or build, OS, host/join/dedicated server.
+Commit or build, OS, GPU, host/join/dedicated server.
+
+**Minimal reproduction (if you can)**
+The smallest scene or set of steps that shows the bug. If it used to work, which commit broke it (`git bisect`)?
 
 **Logs or clip**
 

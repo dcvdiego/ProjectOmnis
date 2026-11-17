@@ -30,7 +30,7 @@ func _ready() -> void:
 	var skeleton := get_skeleton()
 	if skeleton == null:
 		return
-	for side in ["r", "l"]:
+	for side: String in ["r", "l"]:
 		var hand := skeleton.find_bone("hand_" + side)
 		var rest_hand := skeleton.get_bone_global_rest(hand)
 		var middle := skeleton.get_bone_global_rest(skeleton.find_bone("middle_01_" + side)).origin
@@ -77,7 +77,8 @@ func _hide(skeleton: Skeleton3D, bone_name: String) -> void:
 		skeleton.set_bone_pose_scale(bone, Vector3.ONE * 0.001)
 
 
-func _solve(skeleton: Skeleton3D, arm: Dictionary, target: Node3D, pole: Node3D, weight: float, finger_curl: Vector3) -> void:
+func _solve(skeleton: Skeleton3D, arm: Dictionary, target: Node3D, pole: Node3D, weight: float,
+		finger_curl: Vector3) -> void:
 	if target == null or pole == null or weight <= 0.0:
 		return
 	var to_skeleton := skeleton.global_transform.affine_inverse()
@@ -88,12 +89,12 @@ func _solve(skeleton: Skeleton3D, arm: Dictionary, target: Node3D, pole: Node3D,
 	var hand: int = arm.hand
 
 	# Curl the fingers (local rotations on top of the rest pose).
-	for i in arm.fingers.size():
+	for i: int in arm.fingers.size():
 		var bone: int = arm.fingers[i]
 		var angle: float = [finger_curl.x, finger_curl.y, finger_curl.z][i % 3] * weight
 		skeleton.set_bone_pose_rotation(bone, skeleton.get_bone_rest(bone).basis.get_rotation_quaternion()
 			* Quaternion(Vector3.RIGHT, angle))
-	for j in arm.thumbs.size():
+	for j: int in arm.thumbs.size():
 		var bone: int = arm.thumbs[j]
 		skeleton.set_bone_pose_rotation(bone, skeleton.get_bone_rest(bone).basis.get_rotation_quaternion()
 			* Quaternion(Vector3.RIGHT, 0.35 * weight))

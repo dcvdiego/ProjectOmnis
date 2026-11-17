@@ -10,6 +10,20 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Pinned like the engine: a new linter release can't break main.
+      - name: Install gdtoolkit
+        run: pip install gdtoolkit==4.5.0
+      - name: gdlint
+        run: gdlint game tests tools
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -6,6 +6,9 @@ extends RefCounted
 ## World sounds go to the "World" bus (light outdoor reverb); UI sounds go
 ## straight to Master. Nothing plays on headless dedicated servers.
 
+## Surface ids sent over the network with shot effects.
+enum Surface { NONE, CONCRETE, METAL, FLESH }
+
 const WORLD_BUS := &"World"
 
 const FOOTSTEPS := {
@@ -57,8 +60,6 @@ const KILL_CONFIRM := preload("res://game/assets/audio/ui/kill_confirm.ogg")
 const WEAPON_SWITCH := preload("res://game/assets/audio/weapons/weapon_switch.ogg")
 const DRY_FIRE := preload("res://game/assets/audio/weapons/dry_fire.ogg")
 
-## Surface ids sent over the network with shot effects.
-enum Surface { NONE, CONCRETE, METAL, FLESH }
 const SURFACE_NAMES := [&"", &"concrete", &"metal", &"flesh"]
 ## Collider / material names that should sound like metal.
 const METAL_HINTS := ["metal", "container", "corrugated", "barrel", "propane", "generator", "shelves", "utility"]

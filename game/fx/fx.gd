@@ -71,7 +71,8 @@ static func tracer(parent: Node, from: Vector3, to: Vector3) -> void:
 	m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	m.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	parent.add_child(m)
-	m.look_at_from_position((from + to) * 0.5, to, Vector3.UP if absf((to - from).normalized().y) < 0.99 else Vector3.RIGHT)
+	var up := Vector3.UP if absf((to - from).normalized().y) < 0.99 else Vector3.RIGHT
+	m.look_at_from_position((from + to) * 0.5, to, up)
 	m.get_tree().create_timer(TRACER_LIFE).timeout.connect(m.queue_free)
 
 
